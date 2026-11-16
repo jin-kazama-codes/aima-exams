@@ -1,0 +1,6 @@
+{
+  "name": "AIMA Recruitment & Examination Management Platform",
+  "description": "Enterprise Recruitment, Examination Planning, Seat Allocation, Assessment, and Candidate Portal for AIMA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
