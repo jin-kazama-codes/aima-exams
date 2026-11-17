@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ClipboardList,
   FileBadge2,
+  Menu,
   Shield,
   Users,
   X,
@@ -30,6 +31,7 @@ export const PublicHomePage: React.FC = () => {
   );
   const [inspectCampaign, setInspectCampaign] = useState<Campaign | null>(null);
   const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const examsSectionRef = useRef<HTMLElement>(null);
   const regSectionRef = useRef<HTMLElement>(null);
@@ -57,7 +59,7 @@ export const PublicHomePage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#F4F6F9]">
       {/* 3-Zone Top Navigation Bar */}
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
-        <div className="max-w-[1280px] mx-auto px-4 lg:px-6 h-16 flex items-center justify-between gap-8">
+        <div className="max-w-[1280px] mx-auto px-4 lg:px-6 h-16 flex items-center justify-between gap-3 md:gap-8">
           {/* Zone 1: Brand Wordmark */}
           <a
             href="#top"
@@ -98,16 +100,65 @@ export const PublicHomePage: React.FC = () => {
             </button>
           </nav>
 
-          {/* Zone 3: 1 Primary CTA */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Zone 3: 1 Primary CTA + Mobile Menu Toggle */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => openRegistrationFor(campaigns[0]?.id ?? 'AIMA-REC-2027-AO')}
-              className="px-4 py-2 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
+              className="px-3 sm:px-4 py-2 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
               Apply Online
             </button>
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="md:hidden p-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Panel */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 text-sm font-medium text-slate-700">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                scrollToExams();
+              }}
+              className="block w-full text-left py-2 px-2 rounded-lg hover:bg-slate-50"
+            >
+              Examinations
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openRegistrationFor(selectedRegCampaignId);
+              }}
+              className="block w-full text-left py-2 px-2 rounded-lg hover:bg-slate-50"
+            >
+              Registration Form
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setPortalMode('candidate');
+              }}
+              className="block w-full text-left py-2 px-2 rounded-lg hover:bg-slate-50"
+            >
+              Candidate Portal
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setPortalMode('admin');
+              }}
+              className="block w-full text-left py-2 px-2 rounded-lg hover:bg-slate-50"
+            >
+              MIS / Admin Portal
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="flex-1">
@@ -172,7 +223,7 @@ export const PublicHomePage: React.FC = () => {
 
         {/* 4-Column Institutional Summary Strip */}
         <section className="max-w-[1280px] mx-auto px-4 lg:px-6 -mt-5">
-          <div className="bg-white border border-slate-200 rounded-xl grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+          <div className="bg-white border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
             <div className="p-4 flex items-center gap-3">
               <ClipboardList className="w-5 h-5 text-blue-700 shrink-0" />
               <div>

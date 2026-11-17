@@ -52,7 +52,7 @@ export const FinancePages: React.FC<{ mode: 'payments' | 'reconciliation' }> = (
             Gateway UTR Reconciliation Register
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full min-w-[680px] text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500">
                   <th className="py-2 pr-3 font-medium">Txn ID</th>
@@ -196,7 +196,7 @@ export const FinancePages: React.FC<{ mode: 'payments' | 'reconciliation' }> = (
             <CreditCard className="w-4 h-4 text-blue-700" />
             <h2 className="text-sm font-display font-bold text-[#0B1F3A]">Recent Fee Transactions</h2>
           </div>
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 rounded-lg">
             {(['ALL', 'Paid', 'Pending', 'Failed', 'Refunded'] as const).map((st) => (
               <button
                 key={st}
@@ -212,7 +212,7 @@ export const FinancePages: React.FC<{ mode: 'payments' | 'reconciliation' }> = (
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full min-w-[620px] text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500">
                 <th className="py-2 pr-3 font-medium">Txn ID</th>

@@ -48,7 +48,7 @@ export const ExamPlanningPage: React.FC<{ mode?: 'planning' | 'centres' }> = ({
           title="Examination Planning & Shift Schedule"
           subtitle="Configure examination dates, shift reporting windows, centre allocations, and hall readiness"
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setAdminNav('exam-centres')}
                 className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"

@@ -113,9 +113,21 @@ export const CandidateShell: React.FC<{ children: React.ReactNode }> = ({ childr
         })}
       </nav>
 
-      <div className="p-3 border-t border-slate-200">
+      <div className="p-3 border-t border-slate-200 space-y-2">
         <button
-          onClick={() => setPortalMode('admin')}
+          onClick={() => {
+            setMobileOpen(false);
+            setPortalMode('home');
+          }}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
+        >
+          <span>Examinations Home</span>
+        </button>
+        <button
+          onClick={() => {
+            setMobileOpen(false);
+            setPortalMode('admin');
+          }}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[#0B1F3A] text-xs font-semibold transition-colors"
         >
           <Shield className="w-3.5 h-3.5 text-blue-700" />
@@ -155,24 +167,24 @@ export const CandidateShell: React.FC<{ children: React.ReactNode }> = ({ childr
             >
               <Menu className="w-4 h-4" />
             </button>
-            <div className="text-xs sm:text-sm font-display font-bold text-[#0B1F3A]">
-              AIMA Candidate Self-Service Portal
+            <div className="text-xs sm:text-sm font-display font-bold text-[#0B1F3A] truncate">
+              AIMA Candidate Portal
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <span className="hidden sm:inline text-xs font-mono text-slate-500">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="hidden md:inline text-xs font-mono text-slate-500">
               Roll No: {activeCandidate.rollNumber}
             </span>
             <button
               onClick={() => setPortalMode('home')}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 whitespace-nowrap"
             >
               Examinations Home
             </button>
             <button
               onClick={() => setPortalMode('admin')}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0B1F3A] text-white hover:bg-[#143561] whitespace-nowrap"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0B1F3A] text-white hover:bg-[#143561] whitespace-nowrap"
             >
               MIS / Admin Portal
             </button>

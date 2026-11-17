@@ -227,9 +227,9 @@ export const AppointmentPages: React.FC<{
         {/* Formal Appointment Letter Preview */}
         {activeCandidate && (
           <section className="xl:col-span-7 bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs">
-            <div className="bg-[#0B1F3A] text-white px-6 py-4 flex items-center justify-between border-b-4 border-amber-500">
+            <div className="bg-[#0B1F3A] text-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-4 border-amber-500">
               <AimaCrest dark />
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <div className="text-[11px] uppercase tracking-wider text-amber-300 font-semibold">
                   Establishment Directorate
                 </div>
@@ -239,15 +239,15 @@ export const AppointmentPages: React.FC<{
               </div>
             </div>
 
-            <div className="p-6 space-y-4 text-xs text-slate-700 leading-relaxed">
-              <div className="flex items-start justify-between">
+            <div className="p-4 sm:p-6 space-y-4 text-xs text-slate-700 leading-relaxed">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                 <div>
                   <div className="font-semibold text-slate-900">To,</div>
                   <div className="font-display font-bold text-sm text-[#0B1F3A] mt-0.5">{activeCandidate.name}</div>
                   <div>Roll No: <span className="font-mono">{activeCandidate.rollNumber}</span></div>
                   <div>{activeCandidate.address}, {activeCandidate.city}</div>
                 </div>
-                <div className="text-right font-mono text-slate-500">
+                <div className="text-left sm:text-right font-mono text-slate-500">
                   Date: 20 Apr 2027
                 </div>
               </div>
@@ -283,7 +283,7 @@ export const AppointmentPages: React.FC<{
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
                 <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Digitally Authenticated Establishment Order</span>

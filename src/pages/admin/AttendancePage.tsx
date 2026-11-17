@@ -111,7 +111,7 @@ export const AttendancePage: React.FC = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full min-w-[600px] text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500">
                   <th className="py-2 pr-3 font-medium">Candidate</th>

@@ -771,7 +771,7 @@ export const MultiStepApplicationForm: React.FC<{
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                <div className="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={form.gender === 'Female' ? PORTRAITS.priya : PORTRAITS.rahul}
@@ -785,14 +785,14 @@ export const MultiStepApplicationForm: React.FC<{
                       </div>
                     </div>
                   </div>
-                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center justify-center gap-1 shrink-0 self-start sm:self-center">
                     <Upload className="w-3.5 h-3.5" /> Replace
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange('photoFile', e)} />
                   </label>
                 </div>
 
-                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
-                  <div className="min-w-0">
+                <div className="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <div className="font-semibold text-slate-900">Scanned Signature (Black Ink)</div>
                     <div className="mt-1 px-3 py-1.5 border border-dashed border-slate-300 rounded bg-slate-50 font-mono text-slate-700 truncate">
                       {form.name}
@@ -801,33 +801,33 @@ export const MultiStepApplicationForm: React.FC<{
                       {form.signFile}
                     </div>
                   </div>
-                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center justify-center gap-1 shrink-0 self-start sm:self-center">
                     <Upload className="w-3.5 h-3.5" /> Replace
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange('signFile', e)} />
                   </label>
                 </div>
 
-                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                <div className="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-semibold text-slate-900">{form.photoIdType} (PDF)</div>
                     <div className="font-mono text-[11px] text-emerald-700 truncate mt-0.5">
                       {form.idProofFile}
                     </div>
                   </div>
-                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center justify-center gap-1 shrink-0 self-start sm:self-center">
                     <Upload className="w-3.5 h-3.5" /> Upload PDF
                     <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileChange('idProofFile', e)} />
                   </label>
                 </div>
 
-                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                <div className="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="font-semibold text-slate-900">Qualifying Degree Marksheet (PDF)</div>
                     <div className="font-mono text-[11px] text-emerald-700 truncate mt-0.5">
                       {form.degreeFile}
                     </div>
                   </div>
-                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center justify-center gap-1 shrink-0 self-start sm:self-center">
                     <Upload className="w-3.5 h-3.5" /> Upload PDF
                     <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileChange('degreeFile', e)} />
                   </label>
@@ -844,36 +844,40 @@ export const MultiStepApplicationForm: React.FC<{
               8. Pre-Submission Summary, Fee Payment & Declaration
             </div>
 
-            {/* Structured UPSC-style Verification Table */}
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500 w-44">Examination & Post</td>
-                    <td className="py-2 px-3 font-semibold text-slate-900">{activeCampaign.title} · {form.position}</td>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500 w-40">Candidate Name</td>
-                    <td className="py-2 px-3 font-semibold text-slate-900">{form.name}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Father&apos;s / Mother&apos;s Name</td>
-                    <td className="py-2 px-3 text-slate-800">{form.fatherName} / {form.motherName}</td>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Date of Birth</td>
-                    <td className="py-2 px-3 font-mono text-slate-800">{form.dob} ({form.gender})</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Community / PwBD</td>
-                    <td className="py-2 px-3 text-slate-800">{form.category} {form.pwbdRequired ? `· PwBD (${form.pwbdType})` : ''}</td>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Photo Identity</td>
-                    <td className="py-2 px-3 font-mono text-slate-800">{form.photoIdType}: {form.photoIdNumber}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Qualification</td>
-                    <td className="py-2 px-3 text-slate-800">{form.degree} ({form.percentage}) · {form.experienceYears} yrs exp</td>
-                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Centre Choice 1 & 2</td>
-                    <td className="py-2 px-3 font-semibold text-blue-700">{form.preferredCity} (Backup: {form.backupCity})</td>
-                  </tr>
-                </tbody>
-              </table>
+            {/* Structured UPSC-style Verification Grid */}
+            <div className="border border-slate-200 rounded-lg p-4 bg-white grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <div className="text-slate-500">Examination & Post</div>
+                <div className="font-semibold text-slate-900 mt-0.5">{activeCampaign.title} · {form.position}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Candidate Name</div>
+                <div className="font-semibold text-slate-900 mt-0.5">{form.name}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Father&apos;s / Mother&apos;s Name</div>
+                <div className="text-slate-800 mt-0.5">{form.fatherName} / {form.motherName}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Date of Birth & Gender</div>
+                <div className="font-mono text-slate-800 mt-0.5">{form.dob} ({form.gender})</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Community / PwBD</div>
+                <div className="text-slate-800 mt-0.5">{form.category} {form.pwbdRequired ? `· PwBD (${form.pwbdType})` : ''}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Photo Identity</div>
+                <div className="font-mono text-slate-800 mt-0.5">{form.photoIdType}: {form.photoIdNumber}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Qualification & Experience</div>
+                <div className="text-slate-800 mt-0.5">{form.degree} ({form.percentage}) · {form.experienceYears} yrs exp</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Centre Choice 1 & 2</div>
+                <div className="font-semibold text-blue-700 mt-0.5">{form.preferredCity} (Backup: {form.backupCity})</div>
+              </div>
             </div>
 
             {/* Fee Calculation & Payment Gateway */}

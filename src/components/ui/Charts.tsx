@@ -259,11 +259,11 @@ export const ScoreHistogram: React.FC<{
 }> = ({ bins }) => {
   const max = Math.max(...bins.map((b) => b.count), 1);
   return (
-    <div className="flex items-end gap-2 h-44 pt-4">
+    <div className="flex items-end gap-1 sm:gap-2 h-44 pt-4">
       {bins.map((b) => {
         const hPct = Math.max(8, Math.round((b.count / max) * 100));
         return (
-          <div key={b.range} className="flex-1 flex flex-col items-center h-full justify-end group">
+          <div key={b.range} className="flex-1 min-w-0 flex flex-col items-center h-full justify-end group">
             <div className="text-[10px] font-mono tabular-nums text-slate-500 mb-1 opacity-80 group-hover:opacity-100">
               {b.count}
             </div>
@@ -273,7 +273,7 @@ export const ScoreHistogram: React.FC<{
               }`}
               style={{ height: `${hPct}%` }}
             />
-            <div className="text-[10px] font-mono text-slate-600 mt-1.5 whitespace-nowrap">
+            <div className="text-[9px] sm:text-[10px] font-mono text-slate-600 mt-1.5 whitespace-nowrap">
               {b.range}
             </div>
           </div>

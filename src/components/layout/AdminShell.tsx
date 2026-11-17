@@ -203,9 +203,23 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
         ))}
       </nav>
 
-      <div className="p-3 border-t border-white/10">
+      <div className="p-3 border-t border-white/10 space-y-2">
         <button
-          onClick={() => setPortalMode('candidate')}
+          onClick={() => {
+            setMobileOpen(false);
+            setPortalMode('home');
+          }}
+          className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-semibold transition-colors whitespace-nowrap ${
+            collapsed ? 'px-1.5' : ''
+          }`}
+        >
+          {!collapsed ? <span>Examinations Home</span> : <span className="text-[10px]">Home</span>}
+        </button>
+        <button
+          onClick={() => {
+            setMobileOpen(false);
+            setPortalMode('candidate');
+          }}
           className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-400/25 text-xs font-semibold transition-colors whitespace-nowrap ${
             collapsed ? 'px-1.5' : ''
           }`}
@@ -286,7 +300,7 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
               value={selectedCampaignId}
               onChange={(e) => setSelectedCampaignId(e.target.value)}
               aria-label="Recruitment Campaign"
-              className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-blue-600 max-w-[200px]"
+              className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-blue-600 max-w-[140px] sm:max-w-[200px]"
             >
               <option value="ALL">All 2027 Recruitments</option>
               {campaigns.map((c) => (
@@ -309,7 +323,7 @@ export const AdminShell: React.FC<{ children: React.ReactNode }> = ({ children }
                 </span>
               </button>
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-40">
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-40">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <span className="text-xs font-semibold text-[#0B1F3A]">Operational Notifications</span>
                     <button onClick={() => setNotifOpen(false)} className="text-xs text-slate-400 hover:text-slate-700">

@@ -461,7 +461,8 @@ export const CandidatePortal: React.FC = () => {
         />
 
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <table className="w-full text-left border-collapse text-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs min-w-[600px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-500">
                 <th className="py-3 px-4 font-medium">Receipt / Txn ID</th>
@@ -502,6 +503,7 @@ export const CandidatePortal: React.FC = () => {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     );

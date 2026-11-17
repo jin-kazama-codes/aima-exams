@@ -25,7 +25,7 @@ export const AdmitCardPreview: React.FC<{
   return (
     <div className="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs">
       {/* Institutional Banner Header */}
-      <div className="bg-[#0B1F3A] text-white px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-4 border-amber-500">
+      <div className="bg-[#0B1F3A] text-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-4 border-amber-500">
         <AimaCrest dark />
         <div className="text-left sm:text-right">
           <div className="text-[11px] uppercase tracking-wider text-amber-300 font-semibold">
@@ -38,7 +38,7 @@ export const AdmitCardPreview: React.FC<{
       </div>
 
       {/* Main Body */}
-      <div className="p-6 space-y-5">
+      <div className="p-4 sm:p-6 space-y-5">
         <div className="flex flex-col md:flex-row justify-between gap-6">
           {/* Candidate & Exam Details */}
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
@@ -93,7 +93,7 @@ export const AdmitCardPreview: React.FC<{
           </div>
 
           {/* Photo & QR Verification Block */}
-          <div className="flex items-start gap-4 shrink-0">
+          <div className="flex flex-wrap items-start gap-4 shrink-0">
             <div className="text-center">
               <CandidateAvatar src={candidate.photoUrl} name={candidate.name} size="xl" />
               <div className="mt-1.5 px-2 py-0.5 border border-slate-200 rounded text-[10px] font-mono text-slate-600 bg-slate-50">
@@ -158,7 +158,7 @@ export const AdmitCardPreview: React.FC<{
           <div className="text-[11px] text-slate-500 font-mono">
             Digitally Signed by Controller of Examinations · AIMA
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => window.print()}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5"

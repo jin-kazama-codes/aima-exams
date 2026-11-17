@@ -193,7 +193,7 @@ export const AssessmentPages: React.FC<{
             <FileCheck2 className="w-4 h-4 text-slate-400" />
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full min-w-[620px] text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500">
                   <th className="py-2 pr-3 font-medium">Roll No.</th>
@@ -371,7 +371,7 @@ export const AssessmentPages: React.FC<{
             Provisional Merit Ranking Table
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full min-w-[580px] text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500">
                   <th className="py-2 pr-2 font-medium">Rank</th>
