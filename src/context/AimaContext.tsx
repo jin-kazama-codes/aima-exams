@@ -117,10 +117,15 @@ interface AimaContextValue extends AimaState {
     campaignId: string;
     position: string;
     name: string;
+    fatherName?: string;
+    gender?: 'Male' | 'Female' | 'Other';
     email: string;
     phone: string;
     dob: string;
+    address?: string;
     city: string;
+    state?: string;
+    pincode?: string;
     preferredCity: string;
     preferredShift: 'Shift 1 (09:30 AM)' | 'Shift 2 (02:30 PM)';
     category: CandidateApplication['category'];
@@ -129,6 +134,7 @@ interface AimaContextValue extends AimaState {
     institution: string;
     percentage: string;
     experienceYears: number;
+    currentOrg?: string;
   }) => string;
   toggleTestAnswerKey: (testId: string) => void;
   simulateMarksImport: (testId: string) => void;
@@ -618,19 +624,20 @@ export const AimaProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: payload.email,
       phone: payload.phone,
       dob: payload.dob,
-      gender: 'Male',
-      photoUrl: PORTRAITS.rahul,
-      fatherName: 'Rajeshwar Prasad Sharma',
-      address: 'B-42, Sector 15, Rohini',
+      gender: payload.gender ?? 'Male',
+      photoUrl: payload.gender === 'Female' ? PORTRAITS.priya : PORTRAITS.rahul,
+      fatherName: payload.fatherName ?? 'Rajeshwar Prasad Sharma',
+      address: payload.address ?? 'B-42, Sector 15, Rohini',
       city: payload.city,
-      state: 'Delhi',
-      pincode: '110085',
+      state: payload.state ?? 'Delhi',
+      pincode: payload.pincode ?? '110085',
       category: payload.category,
       pwbdRequired: payload.pwbdRequired,
       education: [
         { degree: payload.degree, institution: payload.institution, university: 'Recognized University', year: 2023, percentage: payload.percentage },
       ],
       experienceYears: payload.experienceYears,
+      currentOrg: payload.currentOrg,
       appliedDate: '2027-01-20',
       paymentStatus: 'Paid',
       paymentAmount: fee,

@@ -4,21 +4,32 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  Info,
+  ShieldCheck,
   Upload,
 } from 'lucide-react';
 import { useAima } from '../../context/AimaContext';
 import { ReservationCategory } from '../../types/aima';
 import { PORTRAITS } from '../../data/mockData';
 
-const STEPS = [
-  'Personal Information',
-  'Contact Information',
-  'Category & Eligibility',
-  'Educational Qualification',
-  'Experience',
-  'Photograph & Signature',
-  'KYC & Certificates',
-  'Review & Payment',
+const PARTS = [
+  { part: 'Part I', title: 'Identity, Community & Photo ID' },
+  { part: 'Part I', title: 'Qualification & Address' },
+  { part: 'Part II', title: 'Centre Choice & Uploads' },
+  { part: 'Part II', title: 'Summary, Fee & Declaration' },
+];
+
+const INDIAN_STATES = [
+  'Delhi (NCT)',
+  'Maharashtra',
+  'Karnataka',
+  'Tamil Nadu',
+  'Uttar Pradesh',
+  'West Bengal',
+  'Gujarat',
+  'Rajasthan',
+  'Telangana',
+  'Kerala',
 ];
 
 export const MultiStepApplicationForm: React.FC<{
@@ -28,43 +39,117 @@ export const MultiStepApplicationForm: React.FC<{
 }> = ({ initialCampaignId, onComplete, onCancel }) => {
   const { campaigns, submitNewCandidateApplication } = useAima();
 
+  const defaultCp =
+    campaigns.find((c) => c.id === initialCampaignId) ?? campaigns[0];
+
   const [step, setStep] = useState(0);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const [form, setForm] = useState({
-    campaignId: initialCampaignId ?? campaigns[2]?.id ?? campaigns[0].id,
-    position: 'Systems & Cloud Officer',
+    campaignId: defaultCp.id,
+    position: defaultCp.reservationMatrix[0]?.position ?? 'Administrative Officer',
+    // Part I - Identity (OTR style)
     name: 'Rahul Sharma',
+    gender: 'Male' as 'Male' | 'Female' | 'Other',
     dob: '1999-07-18',
     fatherName: 'Rajeshwar Prasad Sharma',
-    email: 'rahul.sharma@alumni.du.ac.in',
-    phone: '+91 98114 56290',
-    city: 'New Delhi',
-    address: 'B-42, Sector 15, Rohini',
+    motherName: 'Sunita Sharma',
+    nationality: 'Citizen of India',
+    maritalStatus: 'Unmarried',
+    photoIdType: 'Aadhaar Card',
+    photoIdNumber: 'XXXX-XXXX-4821',
+    // Part I - Community & PwBD
     category: 'General' as ReservationCategory,
+    categoryCertNo: '',
+    categoryCertDate: '',
     pwbdRequired: false,
-    preferredCity: 'New Delhi',
-    preferredShift: 'Shift 1 (09:30 AM)' as 'Shift 1 (09:30 AM)' | 'Shift 2 (02:30 PM)',
+    pwbdType: 'Locomotor Disability (OH)',
+    scribeRequired: false,
+    // Part I - Education & Experience
+    matricBoard: 'CBSE (Central Board of Secondary Education)',
+    matricYear: '2015',
+    qualifyingStatus: 'Passed',
     degree: 'Master of Public Policy',
-    institution: 'Delhi School of Economics',
+    institution: 'Delhi School of Economics, University of Delhi',
+    gradYear: '2023',
     percentage: '76.4%',
     experienceYears: 3,
-    photoUploaded: true,
-    signUploaded: true,
-    kycUploaded: true,
-    degreeUploaded: true,
+    currentOrg: 'National Institute of Administrative Research',
+    // Part I - Contact & Address
+    email: 'rahul.sharma@alumni.du.ac.in',
+    phone: '+91 98114 56290',
+    addressLine: 'B-42, Sector 15, Rohini',
+    city: 'New Delhi',
+    state: 'Delhi (NCT)',
+    pincode: '110085',
+    // Part II - Exam Centres & Uploads
+    preferredCity: 'New Delhi',
+    backupCity: 'Mumbai',
+    preferredShift: 'Shift 1 (09:30 AM)' as 'Shift 1 (09:30 AM)' | 'Shift 2 (02:30 PM)',
+    photoFile: 'rahul_passport_35x45mm.jpg',
+    signFile: 'rahul_signature_black_ink.jpg',
+    idProofFile: 'aadhaar_masked_kyc.pdf',
+    degreeFile: 'mpp_consolidated_marksheet.pdf',
+    // Part II - Payment & Declaration
+    paymentGateway: 'SBI ePay (NetBanking / Card / UPI)',
+    declarationAccepted: false,
   });
 
-  const activeCampaign = campaigns.find((c) => c.id === form.campaignId) ?? campaigns[0];
-  const feeAmount = form.category === 'General' ? activeCampaign.feeGeneral : activeCampaign.feeReserved;
+  const activeCampaign =
+    campaigns.find((c) => c.id === form.campaignId) ?? campaigns[0];
+
+  const isFeeExempted =
+    form.category !== 'General' || form.pwbdRequired || form.gender === 'Female';
+  const payableFee = isFeeExempted
+    ? activeCampaign.feeReserved
+    : activeCampaign.feeGeneral;
+
+  const validateStep = (idx: number): boolean => {
+    setErrorMsg(null);
+    if (idx === 0) {
+      if (!form.name.trim() || !form.fatherName.trim() || !form.motherName.trim() || !form.photoIdNumber.trim()) {
+        setErrorMsg('Please complete all mandatory Part I identity fields marked with (*).');
+        return false;
+      }
+      if (form.category !== 'General' && !form.categoryCertNo.trim()) {
+        setErrorMsg(`Please enter your ${form.category} Certificate Number as required for reserved category claims.`);
+        return false;
+      }
+    }
+    if (idx === 1) {
+      if (!form.email.trim() || !form.phone.trim() || !form.addressLine.trim() || !/^\d{6}$/.test(form.pincode.trim())) {
+        setErrorMsg('Please provide valid contact details, address, and a 6-digit PIN code.');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep((s) => Math.min(PARTS.length - 1, s + 1));
+    }
+  };
 
   const handleSubmit = () => {
+    if (!form.declarationAccepted) {
+      setErrorMsg('You must accept the statutory declaration before final submission.');
+      return;
+    }
+    setErrorMsg(null);
     const newId = submitNewCandidateApplication({
       campaignId: form.campaignId,
       position: form.position,
       name: form.name,
+      fatherName: form.fatherName,
+      gender: form.gender,
       email: form.email,
       phone: form.phone,
       dob: form.dob,
+      address: form.addressLine,
       city: form.city,
+      state: form.state,
+      pincode: form.pincode,
       preferredCity: form.preferredCity,
       preferredShift: form.preferredShift,
       category: form.category,
@@ -73,364 +158,799 @@ export const MultiStepApplicationForm: React.FC<{
       institution: form.institution,
       percentage: form.percentage,
       experienceYears: form.experienceYears,
+      currentOrg: form.currentOrg,
     });
     onComplete(newId);
   };
 
+  const handleFileChange = (
+    field: 'photoFile' | 'signFile' | 'idProofFile' | 'degreeFile',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setForm((prev) => ({ ...prev, [field]: file.name }));
+    }
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {/* UPSC-Style Institutional Form Header */}
+      <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="text-xs font-mono text-blue-700 font-semibold">
-            Step {step + 1} of {STEPS.length} · {STEPS[step]}
+          <div className="text-[11px] font-mono font-semibold text-blue-700 uppercase tracking-wide">
+            {PARTS[step].part} · Step {step + 1} of {PARTS.length}
           </div>
-          <h2 className="text-lg font-display font-bold text-[#0B1F3A] mt-0.5">
-            Online Recruitment Application Form
-          </h2>
+          <h3 className="text-base sm:text-lg font-bold text-[#0B1F3A] mt-0.5">
+            {activeCampaign.title} — Application Form
+          </h3>
         </div>
         <button
           onClick={onCancel}
-          className="text-xs font-semibold text-slate-600 hover:text-slate-900 underline self-start sm:self-auto"
+          className="text-xs font-medium text-slate-600 hover:text-slate-900 underline self-start sm:self-auto"
         >
-          Cancel & Return
+          Close Form
         </button>
       </div>
 
-      {/* Stepper Indicator */}
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
-        {STEPS.map((label, idx) => (
-          <button
-            key={label}
-            onClick={() => setStep(idx)}
-            className={`text-left p-2 rounded-lg border text-[11px] transition-colors ${
-              idx === step
-                ? 'bg-[#0B1F3A] text-white border-[#0B1F3A]'
-                : idx < step
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                : 'bg-slate-50 text-slate-500 border-slate-200'
-            }`}
-          >
-            <div className="font-mono font-bold">{String(idx + 1).padStart(2, '0')}</div>
-            <div className="truncate mt-0.5 font-medium">{label.split(' ')[0]}</div>
-          </button>
-        ))}
+      {/* Clean 4-Stage Part I / Part II Step Bar */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200 bg-white">
+        {PARTS.map((p, idx) => {
+          const active = idx === step;
+          const done = idx < step;
+          return (
+            <button
+              key={p.title}
+              onClick={() => {
+                if (idx < step || validateStep(step)) setStep(idx);
+              }}
+              className={`text-left px-4 py-3 border-b-2 transition-colors ${
+                active
+                  ? 'border-blue-700 bg-blue-50/40'
+                  : done
+                  ? 'border-emerald-600 bg-emerald-50/20'
+                  : 'border-transparent hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center justify-between text-[11px] font-mono">
+                <span className={active ? 'text-blue-700 font-semibold' : done ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
+                  {p.part} · 0{idx + 1}
+                </span>
+                {done && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+              </div>
+              <div className={`text-xs font-semibold mt-0.5 truncate ${active ? 'text-[#0B1F3A]' : 'text-slate-700'}`}>
+                {p.title}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Step Content */}
-      <div className="min-h-[240px]">
+      <div className="p-6 space-y-6">
+        {errorMsg && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800 font-medium">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* STAGE 1: PART I — IDENTITY, COMMUNITY & PHOTO ID */}
         {step === 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Recruitment Notification</label>
-              <select
-                value={form.campaignId}
-                onChange={(e) => {
-                  const cp = campaigns.find((c) => c.id === e.target.value);
-                  setForm({
-                    ...form,
-                    campaignId: e.target.value,
-                    position: cp?.reservationMatrix[0]?.position ?? 'Officer',
-                  });
-                }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white font-medium"
-              >
-                {campaigns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title}
-                  </option>
-                ))}
-              </select>
+          <div className="space-y-6 text-xs">
+            {/* Section A: Examination Selection */}
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide pb-1.5 border-b border-slate-200">
+                1. Examination & Cadre Applied For
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Examination Notification <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.campaignId}
+                    onChange={(e) => {
+                      const cp = campaigns.find((c) => c.id === e.target.value);
+                      setForm({
+                        ...form,
+                        campaignId: e.target.value,
+                        position: cp?.reservationMatrix[0]?.position ?? 'Officer',
+                      });
+                    }}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white text-slate-900"
+                  >
+                    {campaigns.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title} ({c.id})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Cadre / Post Preference <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.position}
+                    onChange={(e) => setForm({ ...form, position: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white text-slate-900"
+                  >
+                    {activeCampaign.reservationMatrix.map((r) => (
+                      <option key={r.position} value={r.position}>
+                        {r.position} ({r.payLevel})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Post Applied For</label>
-              <select
-                value={form.position}
-                onChange={(e) => setForm({ ...form, position: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white font-medium"
-              >
-                {activeCampaign.reservationMatrix.map((r) => (
-                  <option key={r.position} value={r.position}>
-                    {r.position}
-                  </option>
-                ))}
-              </select>
+
+            {/* Section B: OTR Personal Details */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200">
+                <span className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide">
+                  2. Candidate Personal Profile (As per Matriculation Certificate)
+                </span>
+                <span className="text-[11px] text-slate-500">Do not use Shri / Smt / Dr</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Candidate Full Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Gender <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.gender}
+                    onChange={(e) =>
+                      setForm({ ...form, gender: e.target.value as 'Male' | 'Female' | 'Other' })
+                    }
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Transgender / Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Date of Birth <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={form.dob}
+                    onChange={(e) => setForm({ ...form, dob: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Father&apos;s Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.fatherName}
+                    onChange={(e) => setForm({ ...form, fatherName: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Mother&apos;s Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.motherName}
+                    onChange={(e) => setForm({ ...form, motherName: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Nationality</label>
+                    <select
+                      value={form.nationality}
+                      onChange={(e) => setForm({ ...form, nationality: e.target.value })}
+                      className="w-full border border-slate-300 rounded-md px-2.5 py-2 bg-white"
+                    >
+                      <option value="Citizen of India">Indian</option>
+                      <option value="Subject of Nepal/Bhutan">Nepal / Bhutan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">Marital Status</label>
+                    <select
+                      value={form.maritalStatus}
+                      onChange={(e) => setForm({ ...form, maritalStatus: e.target.value })}
+                      className="w-full border border-slate-300 rounded-md px-2.5 py-2 bg-white"
+                    >
+                      <option value="Unmarried">Unmarried</option>
+                      <option value="Married">Married</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Candidate Full Name (as per 10th Certificate)</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Date of Birth</label>
-              <input
-                type="date"
-                value={form.dob}
-                onChange={(e) => setForm({ ...form, dob: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 font-mono"
-              />
+
+            {/* Section C: Photo Identity & Community */}
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide pb-1.5 border-b border-slate-200">
+                3. Photo Identity Card, Community & PwBD Reservation
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Photo Identity Card <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.photoIdType}
+                    onChange={(e) => setForm({ ...form, photoIdType: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    <option value="Aadhaar Card">Aadhaar Card</option>
+                    <option value="Passport">Passport</option>
+                    <option value="Voter ID (EPIC)">Voter ID (EPIC)</option>
+                    <option value="PAN Card">PAN Card</option>
+                    <option value="Driving Licence">Driving Licence</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Photo ID Number <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.photoIdNumber}
+                    onChange={(e) => setForm({ ...form, photoIdNumber: e.target.value })}
+                    placeholder="Carry same original ID to exam hall"
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Community / Category <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm({ ...form, category: e.target.value as ReservationCategory })
+                    }
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    <option value="General">General (Unreserved)</option>
+                    <option value="OBC-NCL">OBC (Non-Creamy Layer)</option>
+                    <option value="EWS">EWS (Economically Weaker Section)</option>
+                    <option value="SC">SC (Scheduled Caste)</option>
+                    <option value="ST">ST (Scheduled Tribe)</option>
+                  </select>
+                </div>
+
+                {form.category !== 'General' && (
+                  <>
+                    <div>
+                      <label className="block font-medium text-slate-700 mb-1">
+                        {form.category} Certificate Number <span className="text-red-600">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.categoryCertNo}
+                        onChange={(e) => setForm({ ...form, categoryCertNo: e.target.value })}
+                        placeholder="e.g. DL/REV/2026/88412"
+                        className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-slate-700 mb-1">
+                        Certificate Date of Issue
+                      </label>
+                      <input
+                        type="date"
+                        value={form.categoryCertDate}
+                        onChange={(e) => setForm({ ...form, categoryCertDate: e.target.value })}
+                        className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center gap-6">
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.pwbdRequired}
+                    onChange={(e) => setForm({ ...form, pwbdRequired: e.target.checked })}
+                    className="w-4 h-4 accent-blue-700"
+                  />
+                  <span className="font-medium text-slate-800">
+                    Person with Benchmark Disability (PwBD ≥ 40%) — Requires Ground-Floor Hall
+                  </span>
+                </label>
+
+                {form.pwbdRequired && (
+                  <div className="flex flex-wrap items-center gap-4">
+                    <select
+                      value={form.pwbdType}
+                      onChange={(e) => setForm({ ...form, pwbdType: e.target.value })}
+                      className="border border-slate-300 rounded-md px-2.5 py-1.5 bg-white"
+                    >
+                      <option value="Locomotor Disability (OH)">Locomotor Disability (OH)</option>
+                      <option value="Visual Impairment (VI)">Visual Impairment (VI)</option>
+                      <option value="Hearing Impairment (HI)">Hearing Impairment (HI)</option>
+                    </select>
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.scribeRequired}
+                        onChange={(e) => setForm({ ...form, scribeRequired: e.target.checked })}
+                        className="w-4 h-4 accent-blue-700"
+                      />
+                      <span>Require Scribe Assistance</span>
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
 
+        {/* STAGE 2: PART I — QUALIFICATION, EXPERIENCE & ADDRESS */}
         {step === 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Email Address</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2"
-              />
+          <div className="space-y-6 text-xs">
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide pb-1.5 border-b border-slate-200">
+                4. Educational Qualification & Service Experience
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Matriculation (10th) Examination Board
+                  </label>
+                  <input
+                    type="text"
+                    value={form.matricBoard}
+                    onChange={(e) => setForm({ ...form, matricBoard: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    10th Passing Year
+                  </label>
+                  <input
+                    type="text"
+                    value={form.matricYear}
+                    onChange={(e) => setForm({ ...form, matricYear: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Qualifying Degree Status <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.qualifyingStatus}
+                    onChange={(e) => setForm({ ...form, qualifyingStatus: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    <option value="Passed">Already Passed Degree</option>
+                    <option value="Appearing">Final Year / Appearing</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Degree / Qualification Title <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.degree}
+                    onChange={(e) => setForm({ ...form, degree: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Marks / CGPA (%) <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.percentage}
+                    onChange={(e) => setForm({ ...form, percentage: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block font-medium text-slate-700 mb-1">
+                    University / Institution Name <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.institution}
+                    onChange={(e) => setForm({ ...form, institution: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Passing Year
+                  </label>
+                  <input
+                    type="text"
+                    value={form.gradYear}
+                    onChange={(e) => setForm({ ...form, gradYear: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Work Experience (Years)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={25}
+                    value={form.experienceYears}
+                    onChange={(e) => setForm({ ...form, experienceYears: Number(e.target.value) })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Current / Last Employer Organization
+                  </label>
+                  <input
+                    type="text"
+                    value={form.currentOrg}
+                    onChange={(e) => setForm({ ...form, currentOrg: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Mobile Number</label>
-              <input
-                type="text"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 font-mono"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">City</label>
-              <input
-                type="text"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Correspondence Address</label>
-              <input
-                type="text"
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2"
-              />
+
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide pb-1.5 border-b border-slate-200">
+                5. Contact Details & Permanent Address
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Email Address (OTR Verified) <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Mobile Number <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    State / Union Territory <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block font-medium text-slate-700 mb-1">
+                    House No., Street / Locality <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.addressLine}
+                    onChange={(e) => setForm({ ...form, addressLine: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">
+                      City / District <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      className="w-full border border-slate-300 rounded-md px-2.5 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-slate-700 mb-1">
+                      PIN Code <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={form.pincode}
+                      onChange={(e) => setForm({ ...form, pincode: e.target.value })}
+                      className="w-full border border-slate-300 rounded-md px-2.5 py-2 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
+        {/* STAGE 3: PART II — EXAM CENTRE PREFERENCES & SCANNED UPLOADS */}
         {step === 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Reservation Category</label>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value as ReservationCategory })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white font-medium"
-              >
-                {(['General', 'OBC-NCL', 'SC', 'ST', 'EWS'] as const).map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+          <div className="space-y-6 text-xs">
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide pb-1.5 border-b border-slate-200">
+                6. Examination Centre & Shift Preferences
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Centre Choice 1 (Primary) <span className="text-red-600">*</span>
+                  </label>
+                  <select
+                    value={form.preferredCity}
+                    onChange={(e) => setForm({ ...form, preferredCity: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    {['New Delhi', 'Mumbai', 'Bengaluru', 'Chennai'].map((ct) => (
+                      <option key={ct} value={ct}>{ct}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Centre Choice 2 (Alternate)
+                  </label>
+                  <select
+                    value={form.backupCity}
+                    onChange={(e) => setForm({ ...form, backupCity: e.target.value })}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    {['Mumbai', 'New Delhi', 'Bengaluru', 'Chennai'].map((ct) => (
+                      <option key={ct} value={ct}>{ct}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium text-slate-700 mb-1">
+                    Preferred Examination Shift
+                  </label>
+                  <select
+                    value={form.preferredShift}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        preferredShift: e.target.value as 'Shift 1 (09:30 AM)' | 'Shift 2 (02:30 PM)',
+                      })
+                    }
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                  >
+                    <option value="Shift 1 (09:30 AM)">Shift 1 (09:30 AM)</option>
+                    <option value="Shift 2 (02:30 PM)">Shift 2 (02:30 PM)</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Preferred Examination City</label>
-              <select
-                value={form.preferredCity}
-                onChange={(e) => setForm({ ...form, preferredCity: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white font-medium"
-              >
-                {['New Delhi', 'Mumbai', 'Bengaluru', 'Chennai'].map((ct) => (
-                  <option key={ct} value={ct}>{ct}</option>
-                ))}
-              </select>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200">
+                <span className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide">
+                  7. Photograph, Signature & Photo ID Upload (Part II)
+                </span>
+                <span className="text-[11px] text-slate-500">JPG 20–300 KB · PDF ≤ 1 MB</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={form.gender === 'Female' ? PORTRAITS.priya : PORTRAITS.rahul}
+                      alt="Candidate passport preview"
+                      className="w-14 h-16 rounded border border-slate-300 object-cover shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="font-semibold text-slate-900">Passport Photograph (3.5×4.5 cm)</div>
+                      <div className="font-mono text-[11px] text-emerald-700 truncate mt-0.5">
+                        {form.photoFile}
+                      </div>
+                    </div>
+                  </div>
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                    <Upload className="w-3.5 h-3.5" /> Replace
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange('photoFile', e)} />
+                  </label>
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-slate-900">Scanned Signature (Black Ink)</div>
+                    <div className="mt-1 px-3 py-1.5 border border-dashed border-slate-300 rounded bg-slate-50 font-mono text-slate-700 truncate">
+                      {form.name}
+                    </div>
+                    <div className="font-mono text-[11px] text-emerald-700 truncate mt-1">
+                      {form.signFile}
+                    </div>
+                  </div>
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                    <Upload className="w-3.5 h-3.5" /> Replace
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileChange('signFile', e)} />
+                  </label>
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-slate-900">{form.photoIdType} (PDF)</div>
+                    <div className="font-mono text-[11px] text-emerald-700 truncate mt-0.5">
+                      {form.idProofFile}
+                    </div>
+                  </div>
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                    <Upload className="w-3.5 h-3.5" /> Upload PDF
+                    <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileChange('idProofFile', e)} />
+                  </label>
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-slate-900">Qualifying Degree Marksheet (PDF)</div>
+                    <div className="font-mono text-[11px] text-emerald-700 truncate mt-0.5">
+                      {form.degreeFile}
+                    </div>
+                  </div>
+                  <label className="px-3 py-1.5 rounded-md border border-slate-300 font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer inline-flex items-center gap-1 shrink-0">
+                    <Upload className="w-3.5 h-3.5" /> Upload PDF
+                    <input type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileChange('degreeFile', e)} />
+                  </label>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Preferred Shift</label>
-              <select
-                value={form.preferredShift}
-                onChange={(e) =>
-                  setForm({ ...form, preferredShift: e.target.value as 'Shift 1 (09:30 AM)' | 'Shift 2 (02:30 PM)' })
-                }
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 bg-white font-medium"
-              >
-                <option value="Shift 1 (09:30 AM)">Shift 1 (09:30 AM)</option>
-                <option value="Shift 2 (02:30 PM)">Shift 2 (02:30 PM)</option>
-              </select>
+          </div>
+        )}
+
+        {/* STAGE 4: PART II — VERIFICATION SUMMARY, FEE & STATUTORY DECLARATION */}
+        {step === 3 && (
+          <div className="space-y-5 text-xs">
+            <div className="text-xs font-bold text-[#0B1F3A] uppercase tracking-wide pb-1.5 border-b border-slate-200">
+              8. Pre-Submission Summary, Fee Payment & Declaration
             </div>
-            <label className="flex items-center gap-2.5 pt-5 cursor-pointer">
+
+            {/* Structured UPSC-style Verification Table */}
+            <div className="border border-slate-200 rounded-lg overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500 w-44">Examination & Post</td>
+                    <td className="py-2 px-3 font-semibold text-slate-900">{activeCampaign.title} · {form.position}</td>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500 w-40">Candidate Name</td>
+                    <td className="py-2 px-3 font-semibold text-slate-900">{form.name}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Father&apos;s / Mother&apos;s Name</td>
+                    <td className="py-2 px-3 text-slate-800">{form.fatherName} / {form.motherName}</td>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Date of Birth</td>
+                    <td className="py-2 px-3 font-mono text-slate-800">{form.dob} ({form.gender})</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Community / PwBD</td>
+                    <td className="py-2 px-3 text-slate-800">{form.category} {form.pwbdRequired ? `· PwBD (${form.pwbdType})` : ''}</td>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Photo Identity</td>
+                    <td className="py-2 px-3 font-mono text-slate-800">{form.photoIdType}: {form.photoIdNumber}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Qualification</td>
+                    <td className="py-2 px-3 text-slate-800">{form.degree} ({form.percentage}) · {form.experienceYears} yrs exp</td>
+                    <td className="py-2 px-3 bg-slate-50 text-slate-500">Centre Choice 1 & 2</td>
+                    <td className="py-2 px-3 font-semibold text-blue-700">{form.preferredCity} (Backup: {form.backupCity})</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Fee Calculation & Payment Gateway */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-slate-200 rounded-lg bg-slate-50">
+              <div>
+                <div className="text-slate-500">Applicable Examination Fee</div>
+                <div className="text-xl font-bold text-[#0B1F3A] font-mono mt-0.5">
+                  ₹{payableFee.toLocaleString('en-IN')}.00
+                </div>
+                <div className="text-[11px] text-slate-600 mt-0.5 flex items-center gap-1">
+                  <Info className="w-3.5 h-3.5 text-blue-700" />
+                  {isFeeExempted
+                    ? 'Concessional / Reserved category fee applied.'
+                    : 'Standard Unreserved male candidate fee.'}
+                </div>
+              </div>
+              <div>
+                <label className="block font-medium text-slate-700 mb-1">Payment Mode</label>
+                <select
+                  value={form.paymentGateway}
+                  onChange={(e) => setForm({ ...form, paymentGateway: e.target.value })}
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white"
+                >
+                  <option value="SBI ePay (NetBanking / Card / UPI)">SBI ePay (NetBanking / Card / UPI)</option>
+                  <option value="UPI / BHIM Instant">UPI / BHIM Instant</option>
+                  <option value="Razorpay Gov Treasury">Razorpay Gov Treasury</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Statutory Declaration */}
+            <label className="flex items-start gap-2.5 p-4 border border-amber-200 bg-amber-50/50 rounded-lg cursor-pointer">
               <input
                 type="checkbox"
-                checked={form.pwbdRequired}
-                onChange={(e) => setForm({ ...form, pwbdRequired: e.target.checked })}
-                className="w-4 h-4 accent-blue-700"
+                checked={form.declarationAccepted}
+                onChange={(e) => setForm({ ...form, declarationAccepted: e.target.checked })}
+                className="w-4 h-4 accent-blue-700 mt-0.5 shrink-0"
               />
-              <span className="font-medium text-slate-800">
-                Require PwBD Ground-Floor Examination Accommodation
+              <span className="text-slate-700 leading-relaxed">
+                <strong>Declaration:</strong> I hereby declare that all statements made in this application are true, complete, and correct to the best of my knowledge and belief. I understand that in the event of any information being found false or ineligible at any stage, my candidature is liable to be cancelled by AIMA.
               </span>
             </label>
-          </div>
-        )}
 
-        {step === 3 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Highest Qualifying Degree</label>
-              <input
-                type="text"
-                value={form.degree}
-                onChange={(e) => setForm({ ...form, degree: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Institution / University</label>
-              <input
-                type="text"
-                value={form.institution}
-                onChange={(e) => setForm({ ...form, institution: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Aggregate Percentage / CGPA</label>
-              <input
-                type="text"
-                value={form.percentage}
-                onChange={(e) => setForm({ ...form, percentage: e.target.value })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 font-mono"
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-medium text-slate-600 mb-1">Relevant Work Experience (Years)</label>
-              <input
-                type="number"
-                min={0}
-                max={20}
-                value={form.experienceYears}
-                onChange={(e) => setForm({ ...form, experienceYears: Number(e.target.value) })}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 font-mono"
-              />
-            </div>
-            <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 text-slate-600">
-              Prior public-sector or institutional administration experience is verified during document scrutiny prior to interview shortlisting.
-            </div>
-          </div>
-        )}
-
-        {step === 5 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-            <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={PORTRAITS.rahul}
-                  alt="Candidate portrait"
-                  className="w-16 h-16 rounded-lg object-cover border border-slate-200"
-                />
-                <div>
-                  <div className="font-semibold text-slate-900">Passport Photograph</div>
-                  <div className="text-slate-500">JPG · 48 KB · 200×230px verified</div>
-                </div>
-              </div>
-              <button
-                onClick={() => setForm({ ...form, photoUploaded: true })}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 font-semibold text-blue-700 hover:bg-blue-50 inline-flex items-center gap-1"
-              >
-                <Upload className="w-3.5 h-3.5" /> Re-upload
-              </button>
-            </div>
-
-            <div className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
-              <div>
-                <div className="font-semibold text-slate-900">Scanned Signature</div>
-                <div className="mt-1 px-3 py-2 border border-dashed border-slate-300 rounded bg-slate-50 font-mono text-slate-700">
-                  {form.name} (Verified Specimen)
-                </div>
-              </div>
-              <button
-                onClick={() => setForm({ ...form, signUploaded: true })}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 font-semibold text-blue-700 hover:bg-blue-50 inline-flex items-center gap-1"
-              >
-                <Upload className="w-3.5 h-3.5" /> Re-upload
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 6 && (
-          <div className="space-y-3 text-xs">
-            {[
-              { key: 'kycUploaded', title: 'Government Photo ID (Aadhaar / Passport)', size: '412 KB PDF' },
-              { key: 'degreeUploaded', title: `${form.degree} Consolidated Marksheet & Certificate`, size: '840 KB PDF' },
-            ].map((doc) => (
-              <div key={doc.key} className="border border-slate-200 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-slate-900">{doc.title}</div>
-                  <div className="text-slate-500">{doc.size} · Ready for submission</div>
-                </div>
-                <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
-                  <CheckCircle2 className="w-4 h-4" /> Attached
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {step === 7 && (
-          <div className="space-y-4 text-xs">
-            <div className="p-4 border border-slate-200 rounded-lg bg-slate-50 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div>
-                <div className="text-slate-500">Campaign</div>
-                <div className="font-semibold text-slate-900">{activeCampaign.shortTitle}</div>
-              </div>
-              <div>
-                <div className="text-slate-500">Position</div>
-                <div className="font-semibold text-slate-900">{form.position}</div>
-              </div>
-              <div>
-                <div className="text-slate-500">Candidate & Category</div>
-                <div className="font-semibold text-slate-900">{form.name} ({form.category})</div>
-              </div>
-              <div>
-                <div className="text-slate-500">Exam City Preference</div>
-                <div className="font-semibold text-slate-900">{form.preferredCity}</div>
-              </div>
-            </div>
-
-            <div className="p-4 border border-blue-200 rounded-lg bg-blue-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="text-slate-600">Applicable Examination Fee ({form.category})</div>
-                <div className="text-xl font-display font-bold text-[#0B1F3A] font-mono mt-0.5">
-                  ₹{feeAmount.toLocaleString('en-IN')}.00
-                </div>
-              </div>
+            <div className="flex justify-end">
               <button
                 onClick={handleSubmit}
                 className="px-5 py-2.5 rounded-lg text-xs font-semibold bg-[#0B1F3A] text-white hover:bg-[#143561] inline-flex items-center gap-2"
               >
-                <CreditCard className="w-4 h-4 text-amber-300" /> Confirm Fee Payment & Submit Application
+                <CreditCard className="w-4 h-4 text-amber-300" />
+                Pay ₹{payableFee} & Final Submit Application
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Footer Navigation */}
-      <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+      {/* Footer Step Controls */}
+      <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
         <button
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
+          onClick={() => {
+            setErrorMsg(null);
+            setStep((s) => Math.max(0, s - 1));
+          }}
           disabled={step === 0}
-          className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-200 text-slate-700 disabled:opacity-40 inline-flex items-center gap-1"
+          className="px-3.5 py-2 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 disabled:opacity-40 inline-flex items-center gap-1"
         >
-          <ChevronLeft className="w-3.5 h-3.5" /> Previous Step
+          <ChevronLeft className="w-3.5 h-3.5" /> Previous
         </button>
 
-        {step < STEPS.length - 1 && (
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-500">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+          <span>OTR-Compliant Registration Workflow</span>
+        </div>
+
+        {step < PARTS.length - 1 && (
           <button
-            onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+            onClick={handleNext}
             className="px-4 py-2 rounded-lg text-xs font-semibold bg-blue-700 text-white hover:bg-blue-800 inline-flex items-center gap-1"
           >
             Save & Continue <ChevronRight className="w-3.5 h-3.5" />
